@@ -1,0 +1,187 @@
+#: import utils kivy.utils
+#: set white utils.get_color_from_hex("#ffffff")
+#: set black utils.get_color_from_hex("#333333")
+#: set dark_gray "#555555"
+
+<HomeScreen>:
+    BoxLayout:
+        id: home_screen
+        orientation: 'vertical'
+        spacing: dp(10)
+        padding: dp(50)
+        Label:
+            text: "Write This"
+            color: black
+            halign: 'center'
+            font_size: dp(40)
+        Label:
+            text: "Unleash your creativity\n without distractions!"
+            color: black
+            halign: 'center'
+            font_size: dp(25)
+        Button:
+            text: "START WRITING"
+            font_size: dp(25)
+            padding: dp(20), dp(10)
+            pos_hint: {"center_x": 0.5}
+            size_hint: None, None
+            size: self.texture_size
+            on_press: app.root.transition.direction = 'left'; root.manager.current = 'writing'
+
+
+<WritingWidget>:
+    BoxLayout:
+        id: writing_screen
+        words_count_el: words_count
+        progress_bar_el: progress_bar
+        opacity_value_el: text_field
+        BoxLayout:
+            id: layout_test
+            orientation: "vertical"
+            ProgressBar:
+                id: progress_bar
+                min: 0
+                max: 100
+                value: root.progress_bar
+                size_hint: 1, None
+                height: dp(4)
+                canvas.before:
+                    Color:
+                        rgb: white
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
+            TextInput:
+                id: text_field
+                text: ""
+                padding: dp(20), dp(15)
+                background_normal: 'img/white.png'
+                background_active: 'img/white.png'
+                on_text: root.check_text(self)
+                foreground_color: root.opacity_value, 0, 0, 1 - root.opacity_value
+            Label:
+                id: words_count
+                text: f"{root.words_count} words"
+                size_hint: 1, None
+                height: self.texture_size[1]
+                color: "#888888"
+                padding: dp(10), dp(10)
+                font_size: dp(17)
+                bold: True
+                canvas.before:
+                    Color:
+                        rgb: white
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
+
+<TimeOverPopup>:
+    time_over_popup_el: time_over_popup
+    id: time_over_popup
+    auto_dismiss: True
+    title: 'You got distracted!'
+    size_hint: (None, None)
+    size: (400, 200)
+    BoxLayout:
+        orientation: 'vertical'
+        padding: dp(10)
+        Label:
+            text: "Let's try again. Start typing and don't stop until the progress bar is full"
+            text_size: (self.width, None)
+        Button:
+            text: "OK"
+            size_hint: None, None
+            size: dp(75), dp(35)
+            padding: dp(15), dp(10)
+            pos_hint: {'center_x': 0.9, 'center_y': 1}
+            on_press: root.dismiss()
+
+
+
+<FinishedPopup>:
+    time_over_popup_el: time_over_popup
+    id: time_over_popup
+    auto_dismiss: True
+    title: 'Your session is complete!'
+    size_hint: (None, None)
+    size: (400, 200)
+    BoxLayout:
+        orientation: 'vertical'
+        padding: dp(10)
+        Label:
+            text: "You can copy or export your text."
+            text_size: (self.width, None)
+        Button:
+            text: "OK"
+            size_hint: None, None
+            size: dp(75), dp(35)
+            padding: dp(15), dp(10)
+            pos_hint: {'center_x': 0.9, 'center_y': 1}
+            on_press: root.dismiss()
+
+<ExportOptions>
+    id: export_menu
+    size_hint: 0.33, 1
+    padding: dp(10)
+    orientation: 'vertical'
+    StackLayout:
+        SidebarButton:
+            text: 'Copy to Clipboard'
+            on_press: self.parent.parent.parent.parent.copy_text()
+#        SidebarButton:
+#            text: 'Export as TXT'
+#        SidebarButton:
+#            text: 'Export as PDF'
+
+    StackLayout:
+        orientation: 'rl-bt'
+        SidebarButton:
+            text: 'Start over'
+            on_press: self.parent.parent.parent.parent.reset_app(keep_text=False)
+        SidebarButton:
+            text: 'Continue Writing'
+            on_press: self.parent.parent.parent.parent.reset_app(keep_text=True)
+        SidebarButton:
+            text: 'Change your settings'
+            on_press: self.parent.parent.parent.parent.reset_app(keep_text=False)
+            on_release: app.root.transition.direction = 'right'; app.root.current = 'home'
+
+
+
+<SidebarButton@MDRectangleFlatButton>
+    size_hint: None, None
+    size_hint: 1, None
+    height: dp(75)
+
+<SettingsContent@BoxLayout>
+    id: settings
+    size_hint_y: None
+    height: dp(100)
+    orientation: "vertical"
+    BoxLayout:
+        BoxLayout:
+            padding: dp(20)
+            spacing: dp(20)
+            MDLabel:
+                text: f"Writing Time ({int(slider_writing.value)} minutes.)"
+            Slider:
+                id: slider_writing
+                min: 5
+                max: 60
+                step: 5
+                value: 10
+                on_touch_move: app.writing_time = self.value
+    BoxLayout:
+        ripple_alpha: 0
+        BoxLayout:
+            padding: dp(20)
+            spacing: dp(20)
+            MDLabel:
+                text: f"Penalty Time ({int(slider_penalty.value)} seconds.)"
+            Slider:
+                id: slider_penalty
+                min: 5
+                max: 15
+                step: 1
+                value: 10
+                on_touch_move: app.penalty_time = self.value
